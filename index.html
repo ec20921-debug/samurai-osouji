@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>おそうじ</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="おそうじ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f3f4f6">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<style>html,body{margin:0;padding:0}body{min-height:100vh;padding-top:env(safe-area-inset-top)}#demo{display:none}</style>
+</head><body>
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* 配置の考え方：建物を横から見た断面（5階が上・1階が下）を主役にする。掃く順に上から下へ読む。部屋の幅は同じ */
+:root{
+  --bg:#f3f4f6; --panel:#ffffff; --ink:#15171c; --sub:#5b6170; --line:#d5d8df;
+  --gold:#b98a12; --gold-soft:#f6e7b8; --todo:#e3e5ea; --todo-ink:#5b6170;
+  --half:#f2b632; --half-ink:#3a2a00; --done:#1f9d55; --done-ink:#ffffff;
+  --fix:#d43d2f; --shadow:0 2px 0 rgba(21,23,28,.9);
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic UI","Noto Sans JP",sans-serif;
+  --num:"Oswald","Impact","Arial Narrow",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101216; --panel:#1b1e25; --ink:#f1f2f4; --sub:#a3a9b6; --line:#343945;
+  --gold:#e6b93a; --gold-soft:#3b3115; --todo:#2a2e38; --todo-ink:#a3a9b6;
+  --half:#f2b632; --half-ink:#2a1e00; --done:#27b565; --done-ink:#06210f;
+  --fix:#ff6a5c; --shadow:0 2px 0 rgba(0,0,0,.9); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101216; --panel:#1b1e25; --ink:#f1f2f4; --sub:#a3a9b6; --line:#343945;
+  --gold:#e6b93a; --gold-soft:#3b3115; --todo:#2a2e38; --todo-ink:#a3a9b6;
+  --half:#f2b632; --half-ink:#2a1e00; --done:#27b565; --done-ink:#06210f;
+  --fix:#ff6a5c; --shadow:0 2px 0 rgba(0,0,0,.9); color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--jp);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:14px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* 上のまとめ */
+.top{display:flex;align-items:center;gap:14px}
+.ring{position:relative;flex:none;width:92px;height:92px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .n{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-size:30px;font-weight:700}
+.ring .n small{font-size:14px;color:var(--sub);font-weight:500}
+.top h1{margin:0;font-size:22px;font-weight:900;line-height:1.2;text-wrap:balance}
+.top .sub{color:var(--sub);font-size:13px}
+.msg{font-weight:700;color:var(--gold);font-size:14px;margin-top:2px}
+.pts{margin-left:auto;text-align:right;flex:none}
+.pts b{display:block;font-family:var(--num);font-size:26px;line-height:1}
+.pts span{font-size:11px;color:var(--sub);letter-spacing:.08em}
+
+/* 今日のチェック */
+.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.chk{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:8px 2px 6px;text-align:center;min-width:0}
+.chk .ico{font-size:22px;line-height:1.1;display:block}
+.chk .lb{font-size:11px;font-weight:700;display:block;margin-top:2px}
+.chk .when{font-size:10px;color:var(--sub);display:block}
+.chk[aria-pressed="true"]{background:var(--done);border-color:var(--done);color:var(--done-ink)}
+.chk[aria-pressed="true"] .when{color:inherit;opacity:.85}
+.chk.auto{cursor:default}
+
+/* 今日の時間 */
+.times{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tm{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:6px 8px;min-width:0}
+.tm span{display:block;font-size:11px;color:var(--sub);font-weight:700}
+.tm b{font-family:var(--num);font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tm b small{font-family:var(--jp);font-size:11px;font-weight:700;margin-left:2px}
+/* 建物 */
+.bld{background:var(--panel);border:2px solid var(--ink);border-radius:14px;box-shadow:var(--shadow);padding:12px 10px 0;position:relative}
+.bld-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 2px 8px}
+.bld-head h2{margin:0;font-size:16px;font-weight:900}
+.legend{display:flex;gap:8px;font-size:11px;color:var(--sub);flex-wrap:wrap;justify-content:flex-end}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:3px;vertical-align:-1px}
+.roof{height:14px;margin:0 30px 0 38px;background:var(--ink);clip-path:polygon(4% 100%,12% 0,88% 0,96% 100%)}
+.floors{display:flex;flex-direction:column;border-left:3px solid var(--ink);border-right:3px solid var(--ink);margin-left:36px;position:relative}
+.floor{display:flex;gap:4px;padding:4px;border-top:3px solid var(--ink);position:relative;min-height:74px}
+.floor .fl{position:absolute;left:-40px;top:50%;transform:translateY(-50%);width:32px;text-align:center;font-family:var(--num);font-weight:700;font-size:20px;line-height:1}
+.floor .fl small{display:block;font-family:var(--jp);font-size:9px;color:var(--sub);font-weight:700}
+.room{flex:var(--w) 1 0;min-width:0;border:0;border-radius:8px;background:var(--todo);color:var(--todo-ink);padding:6px 4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;overflow:hidden;background-size:cover;background-position:center}
+.room .id{font-family:var(--num);font-size:19px;font-weight:700;line-height:1;position:relative}
+.room .m2{font-size:10px;position:relative}
+.room .st{font-size:17px;line-height:1.1;position:relative}
+.room[data-s="half"]{background-color:var(--half);color:var(--half-ink)}
+.room[data-s="done"]{color:#fff}
+.room[data-s="done"]::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,60,30,.35),rgba(10,60,30,.78))}
+.room[data-s="done"]{outline:3px solid var(--done);outline-offset:-3px}
+.room .fix{position:absolute;top:2px;right:3px;font-size:13px;background:var(--fix);color:#fff;border-radius:6px;padding:0 4px;line-height:1.5}
+.ground{height:10px;background:repeating-linear-gradient(135deg,var(--ink) 0 6px,transparent 6px 12px);margin:0 -10px;border-top:3px solid var(--ink);border-radius:0 0 11px 11px}
+.sweep{position:absolute;right:6px;top:64px;bottom:22px;width:14px;display:flex;flex-direction:column;align-items:center;color:var(--gold)}
+.sweep::before{content:"";flex:1;width:3px;background:var(--gold);border-radius:2px}
+.sweep::after{content:"";border:7px solid transparent;border-top:10px solid var(--gold)}
+.floors{margin-right:22px}
+.note{font-size:11px;color:var(--sub);margin:8px 2px 10px}
+
+/* 7日のきろく */
+.week{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px}
+.week h2{margin:0 0 8px;font-size:14px;font-weight:900;display:flex;justify-content:space-between;align-items:baseline}
+.week h2 span{font-size:11px;color:var(--sub);font-weight:500}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:128px}
+.day .tt{font-family:var(--num);font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums}
+.day{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%;min-width:0}
+.bar{width:100%;max-width:34px;border-radius:6px 6px 2px 2px;background:var(--done);min-height:3px}
+.bar.part{background:var(--half)} .bar.zero{background:var(--todo)}
+.day b{font-family:var(--num);font-size:13px;line-height:1}
+.day span{font-size:10px;color:var(--sub)}
+.day.today span{color:var(--gold);font-weight:700}
+
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools button{background:transparent;border:2px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700}
+.tools .warn{border-color:var(--fix);color:var(--fix)}
+.about{font-size:12px;color:var(--sub);border-top:1px solid var(--line);padding-top:10px}
+
+/* 部屋のシート */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--panel);color:var(--ink);width:100%;max-width:560px;border-radius:18px 18px 0 0;border:2px solid var(--ink);border-bottom:0;
+  padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px;max-height:92%;overflow:auto}
+.sheet header{display:flex;align-items:center;gap:10px}
+.sheet header .big{font-family:var(--num);font-size:34px;font-weight:700;line-height:1}
+.sheet header .t{font-weight:900;font-size:16px;line-height:1.2}
+.sheet header .t small{display:block;font-weight:500;font-size:12px;color:var(--sub)}
+.sheet .x{margin-left:auto;background:transparent;border:2px solid var(--line);border-radius:10px;width:42px;height:42px;font-size:18px}
+.steps{display:flex;gap:6px;font-size:12px;font-weight:700;color:var(--sub)}
+.steps span{flex:1;text-align:center;padding:5px 2px;border-radius:8px;background:var(--todo)}
+.steps span.on{background:var(--gold);color:#1a1300}
+.steps span.ok{background:var(--done);color:var(--done-ink)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.slot{display:flex;flex-direction:column;gap:6px;min-width:0}
+.slot .cap{font-family:var(--num);font-size:15px;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:baseline}
+.slot .cap small{font-family:var(--jp);font-size:11px;color:var(--sub);letter-spacing:0}
+.shot{aspect-ratio:3/4;max-width:100%;border-radius:12px;border:2px dashed var(--line);background:var(--todo) center/cover;display:grid;place-items:center;
+  color:var(--todo-ink);font-weight:700;font-size:13px;text-align:center;padding:6px}
+.shot.has{border:2px solid var(--ink);color:transparent}
+.shot .cam{font-size:34px;display:block}
+.shot:disabled{opacity:.45;cursor:not-allowed}
+.redo{background:transparent;border:0;color:var(--sub);font-size:12px;text-decoration:underline;padding:2px;align-self:flex-start}
+.fixrow{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:transparent;text-align:left;width:100%}
+.fixrow[aria-pressed="true"]{border-color:var(--fix);background:color-mix(in srgb,var(--fix) 12%,transparent)}
+.fixrow .ico{font-size:22px}
+.fixrow b{display:block;font-size:14px}.fixrow small{font-size:11px;color:var(--sub)}
+.okbtn{background:var(--done);color:var(--done-ink);border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:900}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;border:2px solid var(--fix);border-radius:10px;padding:8px 10px}
+.confirm button{border:2px solid var(--line);background:transparent;border-radius:8px;padding:6px 12px;font-weight:700}
+.confirm .yes{border-color:var(--fix);color:var(--fix)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:999px;font-weight:700;font-size:13px;z-index:30;max-width:90%}
+@media (prefers-reduced-motion:no-preference){.room{transition:background-color .2s}.ring circle.v{transition:stroke-dashoffset .4s}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="ring" aria-hidden="true">
+      <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--todo)" stroke-width="11"></circle>
+      <circle class="v" id="ringv" cx="50" cy="50" r="42" fill="none" stroke="var(--done)" stroke-width="11" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle></svg>
+      <div class="n"><span><span id="cnt">0</span><small>/10</small></span></div>
+    </div>
+    <div style="min-width:0">
+      <div class="sub" id="date"></div>
+      <h1>朝のおそうじ</h1>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div class="pts"><b id="pts">0</b><span>POINT</span></div>
+  </div>
+
+  <div class="checks" id="checks" aria-label="今日のチェック"></div>
+
+  <div class="times" aria-label="今日の時間">
+    <div class="tm"><span>はじめた</span><b id="t-s">–</b></div>
+    <div class="tm"><span>おわった</span><b id="t-e">–</b></div>
+    <div class="tm"><span>かかった</span><b id="t-d">–</b></div>
+  </div>
+
+  <section class="bld" aria-label="建物">
+    <div class="bld-head">
+      <h2>5階 → 1階 へ はく</h2>
+      <div class="legend"><span><i style="background:var(--todo)"></i>まだ</span><span><i style="background:var(--half)"></i>前だけ</span><span><i style="background:var(--done)"></i>できた</span></div>
+    </div>
+    <div class="roof" aria-hidden="true"></div>
+    <div class="floors" id="floors"></div>
+    <div class="sweep" aria-hidden="true"></div>
+    <div class="ground" aria-hidden="true"></div>
+  </section>
+  <p class="note">部屋をおす → 前をとる → そうじ → 後をとる。部屋の名前（1-A など）は仮です。</p>
+
+  <section class="week">
+    <h2>7日のきろく <span id="weeknote"></span></h2>
+    <p class="note" style="margin:0 0 6px">棒＝できた部屋の数。下の数字＝はじめた時刻・かかった分。</p>
+    <div class="days" id="days"></div>
+  </section>
+
+  <div class="tools">
+    <button id="demo" type="button">見本を入れて見る</button>
+    <button id="reset" type="button" class="warn">今日をやり直す</button>
+  </div>
+  <div id="confirm" class="confirm" hidden>今日の写真とチェックを消します。<button type="button" class="yes" id="yes">消す</button><button type="button" id="no">やめる</button></div>
+
+  <p class="about">これは試作です。写真はこのスマホの中だけに残り、どこにも送られません。今日の分だけを残し、日がかわると写真は消えます（数のきろくだけ残ります）。</p>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+    <header>
+      <span class="big" id="sh-id"></span>
+      <span class="t" id="sh-t"></span>
+      <button class="x" id="sh-x" type="button" aria-label="とじる">✕</button>
+    </header>
+    <div class="steps"><span id="s1">① 前をとる</span><span id="s2">② そうじ</span><span id="s3">③ 後をとる</span></div>
+    <div class="pair">
+      <div class="slot"><div class="cap">BEFORE <small id="bt"></small></div>
+        <button class="shot" id="shot-b" type="button"></button><button class="redo" id="redo-b" type="button" hidden>とり直す</button></div>
+      <div class="slot"><div class="cap">AFTER <small id="at"></small></div>
+        <button class="shot" id="shot-a" type="button"></button><button class="redo" id="redo-a" type="button" hidden>とり直す</button></div>
+    </div>
+    <button class="fixrow" id="fix" type="button" aria-pressed="false"><span class="ico">🔧</span><span><b>気になる所がある</b><small>こわれている・よごれが取れない など。日本チームに知らせる印</small></span></button>
+    <button class="okbtn" id="sh-ok" type="button">とじる</button>
+  </div>
+</div>
+<input type="file" id="file" accept="image/*" capture="environment" hidden>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  // 部屋（10区画・名前は仮）
+  var ROOMS=[
+    {id:"5-A",f:5,m:1},{id:"5-B",f:5,m:1},{id:"5-C",f:5,m:1},
+    {id:"4-A",f:4,m:1},{id:"4-B",f:4,m:1},
+    {id:"3-A",f:3,m:1},
+    {id:"2-A",f:2,m:1},{id:"2-B",f:2,m:1},
+    {id:"1-A",f:1,m:1},{id:"1-B",f:1,m:1}];
+  var CHECKS=[
+    {k:"shutter",ico:"🏪",lb:"シャッター",when:"7:05"},
+    {k:"clean",ico:"🧹",lb:"そうじ",when:"7:15",auto:true},
+    {k:"meal",ico:"🍚",lb:"朝ごはん",when:"8:15"},
+    {k:"open",ico:"🕘",lb:"オープン",when:"9:00"},
+    {k:"close",ico:"🔑",lb:"しめ",when:"18:00"},
+    {k:"wash",ico:"👕",lb:"せんたく",when:"18:30"},
+    {k:"dinner",ico:"🍛",lb:"夜ごはん",when:"19:00"},
+    {k:"study",ico:"📱",lb:"べんきょう",when:"20:00"},
+    {k:"sleep",ico:"🌙",lb:"ねる",when:"22:00"}];
+  var $=function(id){return document.getElementById(id)};
+  function pad(n){return (n<10?"0":"")+n}
+  function dkey(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+  var now=new Date(), TODAY=dkey(now), K="sm-clean-"+TODAY, KH="sm-clean-hist";
+  var mem={};
+  function load(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return mem[k]||def}}
+  function save(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+  // 日がかわったら、前の日の写真を消す
+  try{for(var i=localStorage.length-1;i>=0;i--){var kk=localStorage.key(i);if(kk&&kk.indexOf("sm-clean-2")===0&&kk!==K)localStorage.removeItem(kk)}}catch(e){}
+  var S=load(K,{rooms:{},checks:{},demo:false});
+  var H=load(KH,{});
+  var cur=null,slot=null;
+
+  function st(id){var r=S.rooms[id]||{};return r.a&&r.b?"done":(r.b?"half":"todo")}
+  function doneCount(){return ROOMS.filter(function(r){return st(r.id)==="done"}).length}
+  function points(){var n=doneCount(),p=n*10+(n===10?50:0);CHECKS.forEach(function(c){if(!c.auto&&S.checks[c.k])p+=10});return p}
+  function span(){var s=0,e=0;ROOMS.forEach(function(r){var x=S.rooms[r.id];if(!x)return;if(x.bt&&(!s||x.bt<s))s=x.bt;if(x.at&&x.at>e)e=x.at});return {s:s,e:e,d:s&&e>s?Math.round((e-s)/6e4):0}}
+  function hm(t){var d=new Date(t);return d.getHours()+":"+pad(d.getMinutes())}
+  function persist(){
+    var n=doneCount(),last=0;ROOMS.forEach(function(r){var x=S.rooms[r.id];if(x&&x.at&&x.at>last)last=x.at});
+    var sp=span();if(!S.demo){H[TODAY]={n:n,t:n===10?hm(last):"",s:sp.s?hm(sp.s):"",d:n===10?sp.d:0};save(KH,H)}
+    if(!save(K,S))toast("このスマホに保存できませんでした。画面をとじると消えます")
+  }
+  function toast(s){var t=$("toast");t.textContent=s;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true},2600)}
+
+  function render(){
+    var n=doneCount();
+    $("cnt").textContent=n;$("ringv").setAttribute("stroke-dashoffset",(263.9*(1-n/10)).toFixed(1));
+    $("pts").textContent=points();
+    var sp=span();$("t-s").textContent=sp.s?hm(sp.s):"–";$("t-e").textContent=n===10?hm(sp.e):"–";
+    $("t-d").innerHTML=n===10?sp.d+"<small>分</small>":(sp.s?"そうじ中":"–");
+    $("msg").textContent=n===10?"ぜんぶ できた！ +50":(n===0?"5階から はじめよう":"あと "+(10-n)+" 部屋");
+    var wd="日月火水木金土"[now.getDay()];
+    $("date").textContent=(now.getMonth()+1)+"月"+now.getDate()+"日（"+wd+"）"+(S.demo?"・見本":"");
+    // チェック
+    var c=$("checks");c.textContent="";
+    CHECKS.forEach(function(x){
+      var b=document.createElement("button");b.type="button";b.className="chk"+(x.auto?" auto":"");
+      var on=x.auto?n===10:!!S.checks[x.k];b.setAttribute("aria-pressed",on?"true":"false");
+      b.innerHTML='<span class="ico">'+(on?"✔":x.ico)+'</span><span class="lb">'+x.lb+'</span><span class="when">'+(x.auto?n+"/10":(on?hm(S.checks[x.k]):x.when+" まで"))+"</span>";
+      if(x.auto){b.tabIndex=-1}else b.onclick=function(){S.checks[x.k]=S.checks[x.k]?0:Date.now();persist();render()};
+      c.appendChild(b)});
+    // 建物
+    var fl=$("floors");fl.textContent="";
+    [5,4,3,2,1].forEach(function(f){
+      var row=document.createElement("div");row.className="floor";
+      row.innerHTML='<div class="fl">'+f+"F<small>"+f+"階</small></div>";
+      ROOMS.filter(function(r){return r.f===f}).forEach(function(r){
+        var s=st(r.id),x=S.rooms[r.id]||{};
+        var b=document.createElement("button");b.type="button";b.className="room";b.dataset.s=s;b.style.setProperty("--w",r.m);
+        if(s==="done")b.style.backgroundImage="url("+x.a+")";
+        b.setAttribute("aria-label",r.id+" "+(s==="done"?"できた":s==="half"?"前だけ":"まだ"));
+        b.innerHTML='<span class="id">'+r.id+'</span><span class="st">'+(s==="done"?"✔ "+(x.at?hm(x.at):""):s==="half"?"🧹":"📷")+"</span>"+(x.fix?'<span class="fix">🔧</span>':"");
+        b.onclick=function(){openRoom(r)};row.appendChild(b)});
+      fl.appendChild(row)});
+    // 7日
+    var d=$("days");d.textContent="";var any=false;
+    for(var i=6;i>=0;i--){
+      var dt=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),k=dkey(dt);
+      var h=i===0?{n:n}:H[k];if(i>0&&h)any=true;
+      var v=h?h.n:(S.demo&&i>0?[10,10,7,10,0,10][i-1]:null);
+      var ss=i===0?(sp.s?hm(sp.s):""):(h?h.s||"":(S.demo?["7:05","6:52","7:31","6:48","","6:41"][i-1]:""));
+      var dd=i===0?(n===10?sp.d:0):(h?h.d||0:(S.demo?[38,44,0,51,0,56][i-1]:0));
+      var el=document.createElement("div");el.className="day"+(i===0?" today":"");
+      var hgt=v==null?3:Math.max(3,v*6);
+      el.innerHTML="<b>"+(v==null?"–":v)+'</b><div class="bar '+(v==null||v===0?"zero":v<10?"part":"")+'" style="height:'+hgt+'px"></div><span>'+(i===0?"今日":(dt.getMonth()+1)+"/"+dt.getDate())+'</span><span class="tt">'+(ss||"–")+'</span><span class="tt">'+(dd?dd+"分":"–")+"</span>";
+      d.appendChild(el)}
+    $("weeknote").textContent=S.demo?"前の日は見本の数字":(any?"":"きろくは今日から");
+    $("demo").textContent=S.demo?"見本を消す":"見本を入れて見る";
+  }
+
+  function openRoom(r){cur=r;$("scrim").hidden=false;$("confirm").hidden=true;sheet();$("sh-x").focus()}
+  function closeRoom(){$("scrim").hidden=true;cur=null;render()}
+  function sheet(){
+    var x=S.rooms[cur.id]||{};
+    $("sh-id").textContent=cur.id;$("sh-t").innerHTML=cur.f+"階の部屋<small>名前は仮</small>";
+    setShot("b",x.b,x.bt,false);setShot("a",x.a,x.at,!x.b);
+    $("s1").className=x.b?"ok":"on";$("s2").className=x.b&&x.a?"ok":(x.b?"on":"");$("s3").className=x.a?"ok":"";
+    $("fix").setAttribute("aria-pressed",x.fix?"true":"false");
+    $("sh-ok").textContent=x.a&&x.b?"できた！ +10":"とじる";
+  }
+  function setShot(w,img,t,lock){
+    var b=$("shot-"+w);b.disabled=!!lock;b.classList.toggle("has",!!img);b.style.backgroundImage=img?"url("+img+")":"";
+    b.innerHTML=img?"":'<span><span class="cam">📷</span>'+(lock?"先に 前をとる":(w==="b"?"そうじの 前をとる":"そうじの 後をとる"))+"</span>";
+    b.setAttribute("aria-label",(w==="b"?"前":"後")+"の写真"+(img?"（とってある）":"をとる"));
+    $(w+"t").textContent=t?hm(t):"";$("redo-"+w).hidden=!img;
+  }
+  function pick(w){slot=w;var f=$("file");f.value="";f.click()}
+  $("shot-b").onclick=function(){if(!(S.rooms[cur.id]||{}).b)pick("b")};
+  $("shot-a").onclick=function(){if(!(S.rooms[cur.id]||{}).a)pick("a")};
+  $("redo-b").onclick=function(){pick("b")};$("redo-a").onclick=function(){pick("a")};
+  $("file").onchange=function(e){
+    var f=e.target.files&&e.target.files[0];if(!f||!cur)return;
+    var u=URL.createObjectURL(f),im=new Image();
+    im.onload=function(){
+      var m=640,sc=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");
+      c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+      URL.revokeObjectURL(u);put(slot,c.toDataURL("image/jpeg",.6))};
+    im.onerror=function(){URL.revokeObjectURL(u);toast("写真を読めませんでした。もう一度とってください")};im.src=u};
+  function put(w,data){
+    if(S.demo){S={rooms:{},checks:{},demo:false}}
+    var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x[w]=data;x[w+"t"]=Date.now();persist();sheet();
+    if(x.a&&x.b)toast(cur.id+" できた！")}
+  $("fix").onclick=function(){var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x.fix=!x.fix;persist();sheet()};
+  $("sh-x").onclick=closeRoom;$("sh-ok").onclick=closeRoom;
+  $("scrim").onclick=function(e){if(e.target===this)closeRoom()};
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&cur)closeRoom()});
+
+  // 見本（色のついた絵を作る）
+  function fake(label,clean){
+    var c=document.createElement("canvas");c.width=300;c.height=400;var g=c.getContext("2d");
+    var gr=g.createLinearGradient(0,0,0,400);gr.addColorStop(0,clean?"#cfd8dc":"#b8a98c");gr.addColorStop(1,clean?"#eceff1":"#8d7b5a");
+    g.fillStyle=gr;g.fillRect(0,0,300,400);g.fillStyle=clean?"#dfe5e8":"#7a6a4c";g.beginPath();g.moveTo(0,400);g.lineTo(60,230);g.lineTo(240,230);g.lineTo(300,400);g.fill();
+    if(!clean){g.fillStyle="rgba(60,45,20,.55)";for(var i=0;i<26;i++){g.beginPath();g.arc(30+(i*53)%240,250+(i*37)%140,3+(i%4),0,7);g.fill()}}
+    g.fillStyle="rgba(0,0,0,.55)";g.fillRect(0,0,300,44);g.fillStyle="#fff";g.font="bold 20px sans-serif";g.fillText(label+"・見本",12,29);
+    return c.toDataURL("image/jpeg",.6)}
+  $("demo").onclick=function(){
+    if(S.demo){S={rooms:{},checks:{},demo:false}}
+    else{var base=new Date(now.getFullYear(),now.getMonth(),now.getDate(),6,40).getTime(),B=fake("BEFORE",false),A=fake("AFTER",true);
+      S={rooms:{},checks:{meal:0,open:0},demo:true};
+      ROOMS.slice(0,7).forEach(function(r,i){S.rooms[r.id]={b:B,bt:base+i*7*6e4,a:A,at:base+(i*7+5)*6e4}});
+      S.rooms["2-B"]={b:B,bt:base+50*6e4};S.rooms["4-A"].fix=true}
+    save(K,S);render()};
+  $("reset").onclick=function(){$("confirm").hidden=false};
+  $("no").onclick=function(){$("confirm").hidden=true};
+  $("yes").onclick=function(){S={rooms:{},checks:{},demo:false};persist();$("confirm").hidden=true;render();toast("今日の分を消しました")};
+  render();
+})();
+</script>
+
+<script>/* 見本ボタンは ?demo を付けたときだけ出す */if(location.search.indexOf("demo")>=0){var b=document.getElementById("demo");if(b)b.style.display="inline-block"}</script>
+</body></html>
