@@ -159,7 +159,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     <div class="ring" aria-hidden="true">
       <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--todo)" stroke-width="11"></circle>
       <circle class="v" id="ringv" cx="50" cy="50" r="42" fill="none" stroke="var(--done)" stroke-width="11" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle></svg>
-      <div class="n"><span><span id="cnt">0</span><small>/10</small></span></div>
+      <div class="n"><span><span id="cnt">0</span><small>/11</small></span></div>
     </div>
     <div style="min-width:0">
       <div class="sub" id="date"></div>
@@ -227,13 +227,15 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
 
 <script>
 (function(){
-  // 部屋（10区画・名前は仮）
+  // 部屋（10区画＋ベランダ・名前は仮。ベランダが何階かは未確認＝f:0 で別の段にする）
   var ROOMS=[
     {id:"5-A",f:5,m:1},{id:"5-B",f:5,m:1},{id:"5-C",f:5,m:1},
     {id:"4-A",f:4,m:1},{id:"4-B",f:4,m:1},
     {id:"3-A",f:3,m:1},
     {id:"2-A",f:2,m:1},{id:"2-B",f:2,m:1},
-    {id:"1-A",f:1,m:1},{id:"1-B",f:1,m:1}];
+    {id:"1-A",f:1,m:1},{id:"1-B",f:1,m:1},
+    {id:"ベランダ",f:0,m:1}];
+  var TOTAL=ROOMS.length; // 部屋とベランダの合計（数字を直に書かない）
   var CHECKS=[
     {k:"shutter",ico:"🏪",lb:"シャッター",when:"7:05"},
     {k:"clean",ico:"🧹",lb:"そうじ",when:"7:15",auto:true},
@@ -259,38 +261,38 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
 
   function st(id){var r=S.rooms[id]||{};return r.a&&r.b?"done":(r.b?"half":"todo")}
   function doneCount(){return ROOMS.filter(function(r){return st(r.id)==="done"}).length}
-  function points(){var n=doneCount(),p=n*10+(n===10?50:0);CHECKS.forEach(function(c){if(!c.auto&&S.checks[c.k])p+=10});return p}
+  function points(){var n=doneCount(),p=n*10+(n===TOTAL?50:0);CHECKS.forEach(function(c){if(!c.auto&&S.checks[c.k])p+=10});return p}
   function span(){var s=0,e=0;ROOMS.forEach(function(r){var x=S.rooms[r.id];if(!x)return;if(x.bt&&(!s||x.bt<s))s=x.bt;if(x.at&&x.at>e)e=x.at});return {s:s,e:e,d:s&&e>s?Math.round((e-s)/6e4):0}}
   function hm(t){var d=new Date(t);return d.getHours()+":"+pad(d.getMinutes())}
   function persist(){
     var n=doneCount(),last=0;ROOMS.forEach(function(r){var x=S.rooms[r.id];if(x&&x.at&&x.at>last)last=x.at});
-    var sp=span();if(!S.demo){H[TODAY]={n:n,t:n===10?hm(last):"",s:sp.s?hm(sp.s):"",d:n===10?sp.d:0};save(KH,H)}
+    var sp=span();if(!S.demo){H[TODAY]={n:n,t:n===TOTAL?hm(last):"",s:sp.s?hm(sp.s):"",d:n===TOTAL?sp.d:0};save(KH,H)}
     if(!save(K,S))toast("このスマホに保存できませんでした。画面をとじると消えます")
   }
   function toast(s){var t=$("toast");t.textContent=s;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true},2600)}
 
   function render(){
     var n=doneCount();
-    $("cnt").textContent=n;$("ringv").setAttribute("stroke-dashoffset",(263.9*(1-n/10)).toFixed(1));
+    $("cnt").textContent=n;$("ringv").setAttribute("stroke-dashoffset",(263.9*(1-n/TOTAL)).toFixed(1));
     $("pts").textContent=points();
-    var sp=span();$("t-s").textContent=sp.s?hm(sp.s):"–";$("t-e").textContent=n===10?hm(sp.e):"–";
-    $("t-d").innerHTML=n===10?sp.d+"<small>分</small>":(sp.s?"そうじ中":"–");
-    $("msg").textContent=n===10?"ぜんぶ できた！ +50":(n===0?"5階から はじめよう":"あと "+(10-n)+" 部屋");
+    var sp=span();$("t-s").textContent=sp.s?hm(sp.s):"–";$("t-e").textContent=n===TOTAL?hm(sp.e):"–";
+    $("t-d").innerHTML=n===TOTAL?sp.d+"<small>分</small>":(sp.s?"そうじ中":"–");
+    $("msg").textContent=n===TOTAL?"ぜんぶ できた！ +50":(n===0?"5階から はじめよう":"あと "+(TOTAL-n)+" か所");
     var wd="日月火水木金土"[now.getDay()];
     $("date").textContent=(now.getMonth()+1)+"月"+now.getDate()+"日（"+wd+"）"+(S.demo?"・見本":"");
     // チェック
     var c=$("checks");c.textContent="";
     CHECKS.forEach(function(x){
       var b=document.createElement("button");b.type="button";b.className="chk"+(x.auto?" auto":"");
-      var on=x.auto?n===10:!!S.checks[x.k];b.setAttribute("aria-pressed",on?"true":"false");
-      b.innerHTML='<span class="ico">'+(on?"✔":x.ico)+'</span><span class="lb">'+x.lb+'</span><span class="when">'+(x.auto?n+"/10":(on?hm(S.checks[x.k]):x.when+" まで"))+"</span>";
+      var on=x.auto?n===TOTAL:!!S.checks[x.k];b.setAttribute("aria-pressed",on?"true":"false");
+      b.innerHTML='<span class="ico">'+(on?"✔":x.ico)+'</span><span class="lb">'+x.lb+'</span><span class="when">'+(x.auto?n+"/"+TOTAL:(on?hm(S.checks[x.k]):x.when+" まで"))+"</span>";
       if(x.auto){b.tabIndex=-1}else b.onclick=function(){S.checks[x.k]=S.checks[x.k]?0:Date.now();persist();render()};
       c.appendChild(b)});
     // 建物
     var fl=$("floors");fl.textContent="";
-    [5,4,3,2,1].forEach(function(f){
+    [5,4,3,2,1,0].forEach(function(f){
       var row=document.createElement("div");row.className="floor";
-      row.innerHTML='<div class="fl">'+f+"F<small>"+f+"階</small></div>";
+      row.innerHTML=f?'<div class="fl">'+f+"F<small>"+f+"階</small></div>":'<div class="fl">外<small>ベランダ</small></div>';
       ROOMS.filter(function(r){return r.f===f}).forEach(function(r){
         var s=st(r.id),x=S.rooms[r.id]||{};
         var b=document.createElement("button");b.type="button";b.className="room";b.dataset.s=s;b.style.setProperty("--w",r.m);
@@ -304,12 +306,12 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     for(var i=6;i>=0;i--){
       var dt=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),k=dkey(dt);
       var h=i===0?{n:n}:H[k];if(i>0&&h)any=true;
-      var v=h?h.n:(S.demo&&i>0?[10,10,7,10,0,10][i-1]:null);
+      var v=h?h.n:(S.demo&&i>0?[TOTAL,TOTAL,7,TOTAL,0,TOTAL][i-1]:null);
       var ss=i===0?(sp.s?hm(sp.s):""):(h?h.s||"":(S.demo?["7:05","6:52","7:31","6:48","","6:41"][i-1]:""));
-      var dd=i===0?(n===10?sp.d:0):(h?h.d||0:(S.demo?[38,44,0,51,0,56][i-1]:0));
+      var dd=i===0?(n===TOTAL?sp.d:0):(h?h.d||0:(S.demo?[38,44,0,51,0,56][i-1]:0));
       var el=document.createElement("div");el.className="day"+(i===0?" today":"");
-      var hgt=v==null?3:Math.max(3,v*6);
-      el.innerHTML="<b>"+(v==null?"–":v)+'</b><div class="bar '+(v==null||v===0?"zero":v<10?"part":"")+'" style="height:'+hgt+'px"></div><span>'+(i===0?"今日":(dt.getMonth()+1)+"/"+dt.getDate())+'</span><span class="tt">'+(ss||"–")+'</span><span class="tt">'+(dd?dd+"分":"–")+"</span>";
+      var hgt=v==null?3:Math.max(3,Math.round(v*60/TOTAL));
+      el.innerHTML="<b>"+(v==null?"–":v)+'</b><div class="bar '+(v==null||v===0?"zero":v<TOTAL?"part":"")+'" style="height:'+hgt+'px"></div><span>'+(i===0?"今日":(dt.getMonth()+1)+"/"+dt.getDate())+'</span><span class="tt">'+(ss||"–")+'</span><span class="tt">'+(dd?dd+"分":"–")+"</span>";
       d.appendChild(el)}
     $("weeknote").textContent=S.demo?"前の日は見本の数字":(any?"":"きろくは今日から");
     $("demo").textContent=S.demo?"見本を消す":"見本を入れて見る";
@@ -319,7 +321,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
   function closeRoom(){$("scrim").hidden=true;cur=null;render()}
   function sheet(){
     var x=S.rooms[cur.id]||{};
-    $("sh-id").textContent=cur.id;$("sh-t").innerHTML=cur.f+"階の部屋<small>名前は仮</small>";
+    $("sh-id").textContent=cur.id;$("sh-t").innerHTML=cur.f?cur.f+"階の部屋<small>名前は仮</small>":"ベランダ<small>外のそうじ</small>";
     setShot("b",x.b,x.bt,false);setShot("a",x.a,x.at,!x.b);
     $("s1").className=x.b?"ok":"on";$("s2").className=x.b&&x.a?"ok":(x.b?"on":"");$("s3").className=x.a?"ok":"";
     $("fix").setAttribute("aria-pressed",x.fix?"true":"false");
