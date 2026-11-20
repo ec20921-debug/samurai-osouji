@@ -14,7 +14,7 @@
 </head><body>
 
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+Khmer:wght@500;700;900&display=swap">
 <style>
 /* 配置の考え方：建物を横から見た断面（5階が上・1階が下）を主役にする。掃く順に上から下へ読む。部屋の幅は同じ */
 :root{
@@ -24,6 +24,7 @@
   --fix:#d43d2f; --shadow:0 2px 0 rgba(21,23,28,.9);
   --jp:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic UI","Noto Sans JP",sans-serif;
   --num:"Oswald","Impact","Arial Narrow",sans-serif;
+  --km:"Noto Sans Khmer","Khmer Sangam MN","Khmer OS Battambang","Leelawadee UI",sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#101216; --panel:#1b1e25; --ink:#f1f2f4; --sub:#a3a9b6; --line:#343945;
@@ -41,6 +42,30 @@ body{background:var(--bg);color:var(--ink);font-family:var(--jp);font-size:15px;
   display:flex;flex-direction:column;gap:16px}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* ことばの切り替え（クメール語／日本語） */
+.lang{display:flex;gap:0;align-self:flex-end;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--panel)}
+.lang button{border:0;background:transparent;padding:7px 16px;font-size:14px;font-weight:700;min-height:40px;min-width:76px}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.lang .k{font-family:var(--km)}
+/* クメール語のとき：字を少し大きく、行を高く（上下の記号が切れないように） */
+html[lang="km"] body{font-family:var(--km);line-height:1.75}
+html[lang="km"] .top h1{font-size:20px;line-height:1.5}
+html[lang="km"] .chk .lb{font-size:12px;line-height:1.6}
+html[lang="km"] .chk .when{font-size:11px;line-height:1.5}
+html[lang="km"] .tm span,html[lang="km"] .legend,html[lang="km"] .note{font-size:12px}
+html[lang="km"] .tm b small{font-family:var(--km)}
+html[lang="km"] .bld-head{flex-direction:column;align-items:flex-start;gap:2px}
+html[lang="km"] .bld-head h2{font-size:15px;line-height:1.6}
+html[lang="km"] .floor .fl small{font-family:var(--km);font-size:10px}
+html[lang="km"] .floor .fl.o{font-family:var(--km);font-size:14px}
+html[lang="km"] .room .id.v{font-family:var(--km);font-size:17px;line-height:1.5}
+html[lang="km"] .steps,html[lang="km"] .about,html[lang="km"] .redo{font-size:13px}
+html[lang="km"] .steps span{line-height:1.6}
+html[lang="km"] .day span{font-size:11px}
+html[lang="km"] .sheet header .t{line-height:1.6}
+html[lang="km"] .sheet header .big.v{font-family:var(--km);font-size:24px}
+html[lang="km"] .slot .cap small,html[lang="km"] .fixrow small{font-family:var(--km);font-size:12px}
 
 /* 上のまとめ */
 .top{display:flex;align-items:center;gap:14px}
@@ -155,6 +180,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
 </style>
 
 <div class="wrap">
+  <div class="lang" role="group" aria-label="ភាសា / ことば">
+    <button type="button" class="k" id="lg-km" aria-pressed="false">ខ្មែរ</button>
+    <button type="button" id="lg-ja" aria-pressed="false">日本語</button>
+  </div>
   <div class="top">
     <div class="ring" aria-hidden="true">
       <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--todo)" stroke-width="11"></circle>
@@ -163,45 +192,45 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     </div>
     <div style="min-width:0">
       <div class="sub" id="date"></div>
-      <h1>朝のおそうじ</h1>
+      <h1 data-t="title"></h1>
       <div class="msg" id="msg"></div>
     </div>
     <div class="pts"><b id="pts">0</b><span>POINT</span></div>
   </div>
 
-  <div class="checks" id="checks" aria-label="今日のチェック"></div>
+  <div class="checks" id="checks"></div>
 
-  <div class="times" aria-label="今日の時間">
-    <div class="tm"><span>はじめた</span><b id="t-s">–</b></div>
-    <div class="tm"><span>おわった</span><b id="t-e">–</b></div>
-    <div class="tm"><span>かかった</span><b id="t-d">–</b></div>
+  <div class="times">
+    <div class="tm"><span data-t="t_start"></span><b id="t-s">–</b></div>
+    <div class="tm"><span data-t="t_end"></span><b id="t-e">–</b></div>
+    <div class="tm"><span data-t="t_dur"></span><b id="t-d">–</b></div>
   </div>
 
-  <section class="bld" aria-label="建物">
+  <section class="bld">
     <div class="bld-head">
-      <h2>5階 → 1階 へ はく</h2>
-      <div class="legend"><span><i style="background:var(--todo)"></i>まだ</span><span><i style="background:var(--half)"></i>前だけ</span><span><i style="background:var(--done)"></i>できた</span></div>
+      <h2 data-t="bld_title"></h2>
+      <div class="legend"><span><i style="background:var(--todo)"></i><span data-t="s_todo"></span></span><span><i style="background:var(--half)"></i><span data-t="s_half"></span></span><span><i style="background:var(--done)"></i><span data-t="s_done"></span></span></div>
     </div>
     <div class="roof" aria-hidden="true"></div>
     <div class="floors" id="floors"></div>
     <div class="sweep" aria-hidden="true"></div>
     <div class="ground" aria-hidden="true"></div>
   </section>
-  <p class="note">「そうじ」を おして スタート → そうじ → 部屋を おして 後をとる（前の写真は なくてもOK）。部屋の名前（1-A など）は仮です。</p>
+  <p class="note" data-t="note_how"></p>
 
   <section class="week">
-    <h2>7日のきろく <span id="weeknote"></span></h2>
-    <p class="note" style="margin:0 0 6px">棒＝できた部屋の数。下の数字＝はじめた時刻・かかった分。</p>
+    <h2><span data-t="week_title"></span> <span id="weeknote"></span></h2>
+    <p class="note" style="margin:0 0 6px" data-t="week_note"></p>
     <div class="days" id="days"></div>
   </section>
 
   <div class="tools">
-    <button id="demo" type="button">見本を入れて見る</button>
-    <button id="reset" type="button" class="warn">今日をやり直す</button>
+    <button id="demo" type="button"></button>
+    <button id="reset" type="button" class="warn" data-t="reset"></button>
   </div>
-  <div id="confirm" class="confirm" hidden>今日の写真とチェックを消します。<button type="button" class="yes" id="yes">消す</button><button type="button" id="no">やめる</button></div>
+  <div id="confirm" class="confirm" hidden><span data-t="confirm"></span><button type="button" class="yes" id="yes" data-t="yes"></button><button type="button" id="no" data-t="no"></button></div>
 
-  <p class="about">これは試作です。写真はこのスマホの中だけに残り、どこにも送られません。今日の分だけを残し、日がかわると写真は消えます（数のきろくだけ残ります）。</p>
+  <p class="about" data-t="about"></p>
 </div>
 
 <div class="scrim" id="scrim" hidden>
@@ -209,17 +238,17 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     <header>
       <span class="big" id="sh-id"></span>
       <span class="t" id="sh-t"></span>
-      <button class="x" id="sh-x" type="button" aria-label="とじる">✕</button>
+      <button class="x" id="sh-x" type="button">✕</button>
     </header>
-    <div class="steps"><span id="s2">① そうじ</span><span id="s3">② 後をとる</span><span id="s1">前の写真は なくてもOK</span></div>
+    <div class="steps"><span id="s2" data-t="step2"></span><span id="s3" data-t="step3"></span><span id="s1" data-t="step1"></span></div>
     <div class="pair">
       <div class="slot"><div class="cap">BEFORE <small id="bt"></small></div>
-        <button class="shot" id="shot-b" type="button"></button><button class="redo" id="redo-b" type="button" hidden>とり直す</button></div>
+        <button class="shot" id="shot-b" type="button"></button><button class="redo" id="redo-b" type="button" data-t="redo" hidden></button></div>
       <div class="slot"><div class="cap">AFTER <small id="at"></small></div>
-        <button class="shot" id="shot-a" type="button"></button><button class="redo" id="redo-a" type="button" hidden>とり直す</button></div>
+        <button class="shot" id="shot-a" type="button"></button><button class="redo" id="redo-a" type="button" data-t="redo" hidden></button></div>
     </div>
-    <button class="fixrow" id="fix" type="button" aria-pressed="false"><span class="ico">🔧</span><span><b>気になる所がある</b><small>こわれている・よごれが取れない など。日本チームに知らせる印</small></span></button>
-    <button class="okbtn" id="sh-ok" type="button">とじる</button>
+    <button class="fixrow" id="fix" type="button" aria-pressed="false"><span class="ico">🔧</span><span><b data-t="fix_title"></b><small data-t="fix_sub"></small></span></button>
+    <button class="okbtn" id="sh-ok" type="button"></button>
   </div>
 </div>
 <input type="file" id="file" accept="image/*" capture="environment" hidden>
@@ -237,16 +266,30 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     {id:"ベランダ",f:0,m:1}];
   var TOTAL=ROOMS.length; // 部屋とベランダの合計（数字を直に書かない）
   var CHECKS=[
-    {k:"shutter",ico:"🏪",lb:"シャッター",when:"7:05"},
-    {k:"clean",ico:"🧹",lb:"そうじ",when:"7:15",auto:true},
-    {k:"meal",ico:"🍚",lb:"朝ごはん",when:"8:15"},
-    {k:"open",ico:"🕘",lb:"オープン",when:"9:00"},
-    {k:"close",ico:"🔑",lb:"しめ",when:"18:00"},
-    {k:"wash",ico:"👕",lb:"せんたく",when:"18:30"},
-    {k:"dinner",ico:"🍛",lb:"夜ごはん",when:"19:00"},
-    {k:"study",ico:"📱",lb:"べんきょう",when:"20:00"},
-    {k:"sleep",ico:"🌙",lb:"ねる",when:"22:00"}];
+    {k:"shutter",ico:"🏪",when:"7:05"},
+    {k:"clean",ico:"🧹",when:"7:15",auto:true},
+    {k:"meal",ico:"🍚",when:"8:15"},
+    {k:"open",ico:"🕘",when:"9:00"},
+    {k:"close",ico:"🔑",when:"18:00"},
+    {k:"wash",ico:"👕",when:"18:30"},
+    {k:"dinner",ico:"🍛",when:"19:00"},
+    {k:"study",ico:"📱",when:"20:00"},
+    {k:"sleep",ico:"🌙",when:"22:00"}];
+  // 画面の文言（ja＝日本語・km＝クメール語。クメール語は Panha の校閲を通した文。文言を直すときは Day1 の JSON を直して apply_i18n_live.py を回す）
+  var T=/*I18N*/{"ja":{"title":"朝のおそうじ","msg_all":"ぜんぶ できた！ +50","msg_start":"5階から はじめよう","msg_left":"あと {n} か所","demo_tag":"見本","lb_shutter":"シャッター","lb_clean":"そうじ","lb_meal":"朝ごはん","lb_open":"オープン","lb_close":"しめ","lb_wash":"せんたく","lb_dinner":"夜ごはん","lb_study":"べんきょう","lb_sleep":"ねる","until":"{t} まで","t_start":"はじめた","t_end":"おわった","t_dur":"かかった","min":"分","cleaning":"そうじ中","bld_title":"5階 → 1階 へ はく","s_todo":"まだ","s_half":"前だけ","s_done":"できた","floor":"{f}階","note_how":"「そうじ」を おして スタート → そうじ → 部屋を おして 後をとる（前の写真は なくてもOK）。部屋の名前（1-A など）は仮です。","week_title":"7日のきろく","week_from":"きろくは今日から","week_demo":"前の日は見本の数字","week_note":"棒＝できた所の数。下の数字＝はじめた時刻・かかった分。","today":"今日","demo_on":"見本を入れて見る","demo_off":"見本を消す","reset":"今日をやり直す","confirm":"今日の写真とチェックを消します。","yes":"消す","no":"やめる","about":"これは試作です。写真はこのスマホの中だけに残り、どこにも送られません。今日の分だけを残し、日がかわると写真は消えます（数のきろくだけ残ります）。","room_title":"{f}階の部屋","room_sub":"名前は仮","close":"とじる","step1":"前の写真は なくてもOK","step2":"① そうじ","step3":"② 後をとる","redo":"とり直す","fix_title":"気になる所がある","fix_sub":"こわれている・よごれが取れない など。あとでロンさんに見せる印","done10":"できた！ +10","shot_lock":"先に 前をとる","shot_b":"前をとる（なくてもOK）","shot_a":"そうじの 後をとる","toast_done":"{id} できた！","toast_save":"このスマホに保存できませんでした。画面をとじると消えます","toast_photo":"写真を読めませんでした。もう一度とってください","toast_reset":"今日の分を消しました","wd":"日,月,火,水,木,金,土","aria_checks":"今日のチェック","msg_press":"「そうじ」を おして スタート","clean_start":"おして スタート","toast_start":"そうじ スタート！","out":"外","veranda":"ベランダ","veranda_sub":"外のそうじ","lap":"（{n}分）"},"km":{"title":"ការសម្អាតពេលព្រឹក","msg_all":"រួចរាល់ទាំងអស់! +50","msg_start":"យើងចាប់ផ្ដើមពីជាន់ទី5!","msg_left":"នៅសល់ {n} កន្លែង","demo_tag":"គំរូ","lb_shutter":"បើកទ្វារដែក","lb_clean":"សម្អាត","lb_meal":"បាយព្រឹក","lb_open":"បើកហាង","lb_close":"បិទហាង","lb_wash":"បោកខោអាវ","lb_dinner":"បាយល្ងាច","lb_study":"រៀនជប៉ុន","lb_sleep":"ចូលគេង","until":"ត្រឹមម៉ោង {t}","t_start":"ចាប់ផ្ដើម","t_end":"បញ្ចប់","t_dur":"ចំណាយពេល","min":"នាទី","cleaning":"កំពុងសម្អាត","bld_title":"យើងបោសពីជាន់ទី5 ចុះដល់ជាន់ទី1","s_todo":"មិនទាន់ធ្វើ","s_half":"មានតែរូបមុន","s_done":"រួចរាល់","floor":"ជាន់ទី{f}","note_how":"ចុច «សម្អាត» ដើម្បីចាប់ផ្ដើម → សម្អាត → ចុចលើបន្ទប់ រួចថតក្រោយសម្អាត (រូបមុន មិនថតក៏បាន)។ ឈ្មោះបន្ទប់ (ដូចជា 1-A) ជាឈ្មោះបណ្ដោះអាសន្ន។","week_title":"កំណត់ត្រា 7 ថ្ងៃ","week_from":"កំណត់ត្រាចាប់ផ្ដើមពីថ្ងៃនេះ","week_demo":"លេខនៃថ្ងៃមុនៗគឺជាលេខគំរូ","week_note":"របារ = ចំនួនកន្លែងដែលសម្អាតរួច។ លេខខាងក្រោម = ម៉ោងចាប់ផ្ដើម និងចំនួននាទីដែលចំណាយ។","today":"ថ្ងៃនេះ","demo_on":"មើលគំរូ","demo_off":"លុបគំរូ","reset":"ចាប់ផ្ដើមថ្ងៃនេះឡើងវិញ","confirm":"រូបថត និងសញ្ញាធីកនៃថ្ងៃនេះ នឹងត្រូវលុប។","yes":"លុប","no":"មិនលុប","about":"នេះជាកម្មវិធីសាកល្បង។ រូបថតនៅតែក្នុងទូរស័ព្ទនេះប៉ុណ្ណោះ ហើយមិនផ្ញើទៅណាទេ។ កម្មវិធីរក្សាទុកតែរូបថតថ្ងៃនេះ ហើយពេលដល់ថ្ងៃថ្មី រូបថតនឹងត្រូវលុប (នៅសល់តែកំណត់ត្រាជាលេខ)។","room_title":"បន្ទប់ជាន់ទី{f}","room_sub":"ឈ្មោះបណ្ដោះអាសន្ន","close":"បិទ","step1":"រូបមុន មិនថតក៏បាន","step2":"① សម្អាត","step3":"② ថតក្រោយសម្អាត","redo":"ថតម្ដងទៀត","fix_title":"មានកន្លែងមានបញ្ហា","fix_sub":"ខូច ឬប្រឡាក់ជូតមិនចេញ ជាដើម។ ជាសញ្ញាទុកបង្ហាញ បង Ron ពេលក្រោយ។","done10":"រួចរាល់! +10","shot_lock":"ថតមុនសម្អាតសិន","shot_b":"ថតរូបមុនពេលសម្អាត (មិនថតក៏បាន)","shot_a":"ថតរូបក្រោយពេលសម្អាត","toast_done":"{id} រួចរាល់!","toast_save":"រក្សាទុកក្នុងទូរស័ព្ទនេះមិនបានទេ។ បើបិទកម្មវិធីនេះ ទិន្នន័យនឹងបាត់។","toast_photo":"អានរូបថតមិនបានទេ។ សូមថតម្ដងទៀត។","toast_reset":"បានលុបទិន្នន័យថ្ងៃនេះហើយ","wd":"អាទិត្យ,ចន្ទ,អង្គារ,ពុធ,ព្រហស្បតិ៍,សុក្រ,សៅរ៍","aria_checks":"សញ្ញាធីកនៃថ្ងៃនេះ","msg_press":"ចុច «សម្អាត» ដើម្បីចាប់ផ្ដើម","clean_start":"ចុច ចាប់ផ្ដើម","toast_start":"ចាប់ផ្ដើមសម្អាតហើយ!","out":"ក្រៅ","veranda":"បាល់កុង","veranda_sub":"ការសម្អាតខាងក្រៅ","lap":" ({n} នាទី)"}}/*END*/;
   var $=function(id){return document.getElementById(id)};
+  // ことば：前に選んだもの → 無ければ端末が日本語なら日本語、ほかはクメール語
+  var KL="sm-clean-lang",LANG="km";
+  try{var lv=localStorage.getItem(KL);LANG=(lv==="ja"||lv==="km")?lv:(/^ja/i.test(navigator.language||"")?"ja":"km")}catch(e){LANG=/^ja/i.test(navigator.language||"")?"ja":"km"}
+  function t(k,v){var s=(T[LANG]&&T[LANG][k])||(T.ja&&T.ja[k])||k;if(v)for(var x in v)s=s.split("{"+x+"}").join(v[x]);return s}
+  function nm(r){return r.f?r.id:t("veranda")} // 画面に出す名前（保存の名前 r.id は変えない）
+  function setLang(l){LANG=l;try{localStorage.setItem(KL,l)}catch(e){}applyLang();render();if(cur)sheet()}
+  function applyLang(){
+    document.documentElement.lang=LANG;
+    $("lg-km").setAttribute("aria-pressed",LANG==="km"?"true":"false");$("lg-ja").setAttribute("aria-pressed",LANG==="ja"?"true":"false");
+    var els=document.querySelectorAll("[data-t]");for(var i=0;i<els.length;i++)els[i].textContent=t(els[i].getAttribute("data-t"));
+    $("checks").setAttribute("aria-label",t("aria_checks"));$("sh-x").setAttribute("aria-label",t("close"));
+  }
   function pad(n){return (n<10?"0":"")+n}
   function dkey(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
   var now=new Date(), TODAY=dkey(now), K="sm-clean-"+TODAY, KH="sm-clean-hist";
@@ -269,7 +312,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
   function persist(){
     var n=doneCount(),last=0;ROOMS.forEach(function(r){var x=S.rooms[r.id];if(x&&x.at&&x.at>last)last=x.at});
     var sp=span();if(!S.demo){H[TODAY]={n:n,t:n===TOTAL?hm(last):"",s:sp.s?hm(sp.s):"",d:n===TOTAL?sp.d:0,r:laps()};save(KH,H)}
-    if(!save(K,S))toast("このスマホに保存できませんでした。画面をとじると消えます")
+    if(!save(K,S))toast(t("toast_save"))
   }
   function toast(s){var t=$("toast");t.textContent=s;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true},2600)}
 
@@ -278,29 +321,29 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     $("cnt").textContent=n;$("ringv").setAttribute("stroke-dashoffset",(263.9*(1-n/TOTAL)).toFixed(1));
     $("pts").textContent=points();
     var sp=span();$("t-s").textContent=sp.s?hm(sp.s):"–";$("t-e").textContent=n===TOTAL?hm(sp.e):"–";
-    $("t-d").innerHTML=n===TOTAL?sp.d+"<small>分</small>":(sp.s?"そうじ中":"–");
-    $("msg").textContent=n===TOTAL?"ぜんぶ できた！ +50":(n===0?(S.cs?"5階から はじめよう":"「そうじ」を おして スタート"):"あと "+(TOTAL-n)+" か所");
-    var wd="日月火水木金土"[now.getDay()];
-    $("date").textContent=(now.getMonth()+1)+"月"+now.getDate()+"日（"+wd+"）"+(S.demo?"・見本":"");
+    $("t-d").innerHTML=n===TOTAL?sp.d+"<small>"+t("min")+"</small>":(sp.s?'<small style="margin:0">'+t("cleaning")+"</small>":"–");
+    $("msg").textContent=n===TOTAL?t("msg_all"):(n===0?t(S.cs?"msg_start":"msg_press"):t("msg_left",{n:TOTAL-n}));
+    var wd=t("wd").split(",")[now.getDay()];
+    $("date").textContent=(LANG==="ja"?(now.getMonth()+1)+"月"+now.getDate()+"日（"+wd+"）":now.getDate()+"/"+(now.getMonth()+1)+" ("+wd+")")+(S.demo?" · "+t("demo_tag"):"");
     // チェック
     var c=$("checks");c.textContent="";
     CHECKS.forEach(function(x){
       var b=document.createElement("button");b.type="button";b.className="chk"+(x.auto?" auto":"");
       var on=x.auto?n===TOTAL:!!S.checks[x.k];b.setAttribute("aria-pressed",on?"true":"false");
-      b.innerHTML='<span class="ico">'+(on?"✔":x.ico)+'</span><span class="lb">'+x.lb+'</span><span class="when">'+(x.auto?n+"/"+TOTAL:(on?hm(S.checks[x.k]):x.when+" まで"))+"</span>";
-      if(x.auto){if(S.cs){b.tabIndex=-1}else{b.querySelector(".when").textContent="おして スタート";b.onclick=function(){S.cs=Date.now();persist();render();toast("そうじ スタート！")}}}else b.onclick=function(){S.checks[x.k]=S.checks[x.k]?0:Date.now();persist();render()};
+      b.innerHTML='<span class="ico">'+(on?"✔":x.ico)+'</span><span class="lb">'+t("lb_"+x.k)+'</span><span class="when">'+(x.auto?n+"/"+TOTAL:(on?hm(S.checks[x.k]):t("until",{t:x.when})))+"</span>";
+      if(x.auto){if(S.cs){b.tabIndex=-1}else{b.querySelector(".when").textContent=t("clean_start");b.onclick=function(){S.cs=Date.now();persist();render();toast(t("toast_start"))}}}else b.onclick=function(){S.checks[x.k]=S.checks[x.k]?0:Date.now();persist();render()};
       c.appendChild(b)});
     // 建物
     var fl=$("floors");fl.textContent="";
     [5,4,3,2,1,0].forEach(function(f){
       var row=document.createElement("div");row.className="floor";
-      row.innerHTML=f?'<div class="fl">'+f+"F<small>"+f+"階</small></div>":'<div class="fl">外<small>ベランダ</small></div>';
+      row.innerHTML=f?'<div class="fl">'+f+"F<small>"+t("floor",{f:f})+"</small></div>":'<div class="fl o">'+t("out")+"</div>";
       ROOMS.filter(function(r){return r.f===f}).forEach(function(r){
         var s=st(r.id),x=S.rooms[r.id]||{};
         var b=document.createElement("button");b.type="button";b.className="room";b.dataset.s=s;b.style.setProperty("--w",r.m);
         if(s==="done")b.style.backgroundImage="url("+x.a+")";
-        b.setAttribute("aria-label",r.id+" "+(s==="done"?"できた":s==="half"?"前だけ":"まだ"));
-        b.innerHTML='<span class="id">'+r.id+'</span><span class="st">'+(s==="done"?"✔ "+(x.at?hm(x.at):""):s==="half"?"🧹":"📷")+"</span>"+(x.fix?'<span class="fix">🔧</span>':"");
+        b.setAttribute("aria-label",nm(r)+" "+t(s==="done"?"s_done":s==="half"?"s_half":"s_todo"));
+        b.innerHTML='<span class="id'+(r.f?"":" v")+'">'+nm(r)+'</span><span class="st">'+(s==="done"?"✔ "+(x.at?hm(x.at):""):s==="half"?"🧹":"📷")+"</span>"+(x.fix?'<span class="fix">🔧</span>':"");
         b.onclick=function(){openRoom(r)};row.appendChild(b)});
       fl.appendChild(row)});
     // 7日
@@ -313,27 +356,27 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
       var dd=i===0?(n===TOTAL?sp.d:0):(h?h.d||0:(S.demo?[38,44,0,51,0,56][i-1]:0));
       var el=document.createElement("div");el.className="day"+(i===0?" today":"");
       var hgt=v==null?3:Math.max(3,Math.round(v*60/TOTAL));
-      el.innerHTML="<b>"+(v==null?"–":v)+'</b><div class="bar '+(v==null||v===0?"zero":v<TOTAL?"part":"")+'" style="height:'+hgt+'px"></div><span>'+(i===0?"今日":(dt.getMonth()+1)+"/"+dt.getDate())+'</span><span class="tt">'+(ss||"–")+'</span><span class="tt">'+(dd?dd+"分":"–")+"</span>";
+      el.innerHTML="<b>"+(v==null?"–":v)+'</b><div class="bar '+(v==null||v===0?"zero":v<TOTAL?"part":"")+'" style="height:'+hgt+'px"></div><span>'+(i===0?t("today"):(LANG==="ja"?(dt.getMonth()+1)+"/"+dt.getDate():dt.getDate()+"/"+(dt.getMonth()+1)))+'</span><span class="tt">'+(ss||"–")+'</span><span class="tt">'+(dd?dd+"′":"–")+"</span>";
       d.appendChild(el)}
-    $("weeknote").textContent=S.demo?"前の日は見本の数字":(any?"":"きろくは今日から");
-    $("demo").textContent=S.demo?"見本を消す":"見本を入れて見る";
+    $("weeknote").textContent=S.demo?t("week_demo"):(any?"":t("week_from"));
+    $("demo").textContent=t(S.demo?"demo_off":"demo_on");
   }
 
   function openRoom(r){cur=r;$("scrim").hidden=false;$("confirm").hidden=true;sheet();$("sh-x").focus()}
   function closeRoom(){$("scrim").hidden=true;cur=null;render()}
   function sheet(){
     var x=S.rooms[cur.id]||{};
-    $("sh-id").textContent=cur.id;$("sh-t").innerHTML=cur.f?cur.f+"階の部屋<small>名前は仮</small>":"ベランダ<small>外のそうじ</small>";
+    $("sh-id").textContent=nm(cur);$("sh-id").className="big"+(cur.f?"":" v");$("sh-t").innerHTML=cur.f?t("room_title",{f:cur.f})+"<small>"+t("room_sub")+"</small>":"<small>"+t("veranda_sub")+"</small>";
     setShot("b",x.b,x.bt,false);setShot("a",x.a,x.at,false);
     $("s1").className=x.b?"ok":"";$("s2").className=x.a?"ok":"on";$("s3").className=x.a?"ok":"on";
     $("fix").setAttribute("aria-pressed",x.fix?"true":"false");
-    var lp=laps()[cur.id];$("sh-ok").textContent=x.a?"できた！ +10"+(lp?"（"+lp+"分）":""):"とじる";
+    var lp=laps()[cur.id];$("sh-ok").textContent=x.a?t("done10")+(lp?t("lap",{n:lp}):""):t("close");
   }
-  function setShot(w,img,t,lock){
+  function setShot(w,img,tm,lock){
     var b=$("shot-"+w);b.disabled=!!lock;b.classList.toggle("has",!!img);b.style.backgroundImage=img?"url("+img+")":"";
-    b.innerHTML=img?"":'<span><span class="cam">📷</span>'+(w==="b"?"前をとる（なくてもOK）":"そうじの 後をとる")+"</span>";
-    b.setAttribute("aria-label",(w==="b"?"前":"後")+"の写真"+(img?"（とってある）":"をとる"));
-    $(w+"t").textContent=t?hm(t):"";$("redo-"+w).hidden=!img;
+    b.innerHTML=img?"":'<span><span class="cam">📷</span>'+t(w==="b"?"shot_b":"shot_a")+"</span>";
+    b.setAttribute("aria-label",(w==="b"?"BEFORE ":"AFTER ")+t(w==="b"?"shot_b":"shot_a")+(img?" ✔":""));
+    $(w+"t").textContent=tm?hm(tm):"";$("redo-"+w).hidden=!img;
   }
   function pick(w){slot=w;var f=$("file");f.value="";f.click()}
   $("shot-b").onclick=function(){if(!(S.rooms[cur.id]||{}).b)pick("b")};
@@ -346,11 +389,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
       var m=640,sc=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");
       c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
       URL.revokeObjectURL(u);put(slot,c.toDataURL("image/jpeg",.6))};
-    im.onerror=function(){URL.revokeObjectURL(u);toast("写真を読めませんでした。もう一度とってください")};im.src=u};
+    im.onerror=function(){URL.revokeObjectURL(u);toast(t("toast_photo"))};im.src=u};
   function put(w,data){
     if(S.demo){S={rooms:{},checks:{},demo:false}}
     var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x[w]=data;x[w+"t"]=Date.now();if(!S.cs)S.cs=x[w+"t"];persist();sheet();
-    if(w==="a"){var lp=laps()[cur.id];toast(cur.id+" できた！"+(lp?" "+lp+"分":""))}}
+    if(w==="a"){var lp=laps()[cur.id];toast(t("toast_done",{id:nm(cur)})+(lp?t("lap",{n:lp}):""))}}
   $("fix").onclick=function(){var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x.fix=!x.fix;persist();sheet()};
   $("sh-x").onclick=closeRoom;$("sh-ok").onclick=closeRoom;
   $("scrim").onclick=function(e){if(e.target===this)closeRoom()};
@@ -362,7 +405,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     var gr=g.createLinearGradient(0,0,0,400);gr.addColorStop(0,clean?"#cfd8dc":"#b8a98c");gr.addColorStop(1,clean?"#eceff1":"#8d7b5a");
     g.fillStyle=gr;g.fillRect(0,0,300,400);g.fillStyle=clean?"#dfe5e8":"#7a6a4c";g.beginPath();g.moveTo(0,400);g.lineTo(60,230);g.lineTo(240,230);g.lineTo(300,400);g.fill();
     if(!clean){g.fillStyle="rgba(60,45,20,.55)";for(var i=0;i<26;i++){g.beginPath();g.arc(30+(i*53)%240,250+(i*37)%140,3+(i%4),0,7);g.fill()}}
-    g.fillStyle="rgba(0,0,0,.55)";g.fillRect(0,0,300,44);g.fillStyle="#fff";g.font="bold 20px sans-serif";g.fillText(label+"・見本",12,29);
+    g.fillStyle="rgba(0,0,0,.55)";g.fillRect(0,0,300,44);g.fillStyle="#fff";g.font="bold 20px sans-serif";g.fillText(label+" · SAMPLE",12,29);
     return c.toDataURL("image/jpeg",.6)}
   $("demo").onclick=function(){
     if(S.demo){S={rooms:{},checks:{},demo:false}}
@@ -373,8 +416,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outl
     save(K,S);render()};
   $("reset").onclick=function(){$("confirm").hidden=false};
   $("no").onclick=function(){$("confirm").hidden=true};
-  $("yes").onclick=function(){S={rooms:{},checks:{},demo:false};persist();$("confirm").hidden=true;render();toast("今日の分を消しました")};
-  render();
+  $("yes").onclick=function(){S={rooms:{},checks:{},demo:false};persist();$("confirm").hidden=true;render();toast(t("toast_reset"))};
+  $("lg-km").onclick=function(){setLang("km")};$("lg-ja").onclick=function(){setLang("ja")};
+  // 夜をまたいで開きっぱなしのとき、もどってきたら今日の画面に直す
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&dkey(new Date())!==TODAY&&!cur)location.reload()});
+  applyLang();render();
 })();
 </script>
 
