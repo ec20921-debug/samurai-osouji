@@ -253,6 +253,7 @@ html[lang="km"] .slot .cap small,html[lang="km"] .fixrow small{font-family:var(-
 </div>
 <input type="file" id="file" accept="image/*" capture="environment" hidden>
 <div class="toast" id="toast" hidden></div>
+<div id="sync" hidden style="position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;background:#111827;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:7px 10px;border-radius:999px;opacity:.85;pointer-events:none"></div>
 
 <script>
 (function(){
@@ -276,7 +277,7 @@ html[lang="km"] .slot .cap small,html[lang="km"] .fixrow small{font-family:var(-
     {k:"study",ico:"📱",when:"20:00"},
     {k:"sleep",ico:"🌙",when:"22:00"}];
   // 画面の文言（ja＝日本語・km＝クメール語。クメール語は Panha の校閲を通した文。文言を直すときは Day1 の JSON を直して apply_i18n_live.py を回す）
-  var T=/*I18N*/{"ja":{"title":"朝のおそうじ","msg_all":"ぜんぶ できた！ +50","msg_start":"5階から はじめよう","msg_left":"あと {n} か所","demo_tag":"見本","lb_shutter":"シャッター","lb_clean":"そうじ","lb_meal":"朝ごはん","lb_open":"オープン","lb_close":"しめ","lb_wash":"せんたく","lb_dinner":"夜ごはん","lb_study":"べんきょう","lb_sleep":"ねる","until":"{t} まで","t_start":"はじめた","t_end":"おわった","t_dur":"かかった","min":"分","cleaning":"そうじ中","bld_title":"5階 → 1階 へ はく","s_todo":"まだ","s_half":"前だけ","s_done":"できた","floor":"{f}階","note_how":"「そうじ」を おして スタート → そうじ → 部屋を おして 後をとる（前の写真は なくてもOK）。部屋の名前（1-A など）は仮です。","week_title":"7日のきろく","week_from":"きろくは今日から","week_demo":"前の日は見本の数字","week_note":"棒＝できた所の数。下の数字＝はじめた時刻・かかった分。","today":"今日","demo_on":"見本を入れて見る","demo_off":"見本を消す","reset":"今日をやり直す","confirm":"今日の写真とチェックを消します。","yes":"消す","no":"やめる","about":"これは試作です。写真はこのスマホの中だけに残り、どこにも送られません。今日の分だけを残し、日がかわると写真は消えます（数のきろくだけ残ります）。","room_title":"{f}階の部屋","room_sub":"名前は仮","close":"とじる","step1":"前の写真は なくてもOK","step2":"① そうじ","step3":"② 後をとる","redo":"とり直す","fix_title":"気になる所がある","fix_sub":"こわれている・よごれが取れない など。あとでロンさんに見せる印","done10":"できた！ +10","shot_lock":"先に 前をとる","shot_b":"前をとる（なくてもOK）","shot_a":"そうじの 後をとる","toast_done":"{id} できた！","toast_save":"このスマホに保存できませんでした。画面をとじると消えます","toast_photo":"写真を読めませんでした。もう一度とってください","toast_reset":"今日の分を消しました","wd":"日,月,火,水,木,金,土","aria_checks":"今日のチェック","msg_press":"「そうじ」を おして スタート","clean_start":"おして スタート","toast_start":"そうじ スタート！","out":"外","veranda":"ベランダ","veranda_sub":"外のそうじ","lap":"（{n}分）"},"km":{"title":"ការសម្អាតពេលព្រឹក","msg_all":"រួចរាល់ទាំងអស់! +50","msg_start":"យើងចាប់ផ្ដើមពីជាន់ទី5!","msg_left":"នៅសល់ {n} កន្លែង","demo_tag":"គំរូ","lb_shutter":"បើកទ្វារដែក","lb_clean":"សម្អាត","lb_meal":"បាយព្រឹក","lb_open":"បើកហាង","lb_close":"បិទហាង","lb_wash":"បោកខោអាវ","lb_dinner":"បាយល្ងាច","lb_study":"រៀនជប៉ុន","lb_sleep":"ចូលគេង","until":"ត្រឹមម៉ោង {t}","t_start":"ចាប់ផ្ដើម","t_end":"បញ្ចប់","t_dur":"ចំណាយពេល","min":"នាទី","cleaning":"កំពុងសម្អាត","bld_title":"យើងបោសពីជាន់ទី5 ចុះដល់ជាន់ទី1","s_todo":"មិនទាន់ធ្វើ","s_half":"មានតែរូបមុន","s_done":"រួចរាល់","floor":"ជាន់ទី{f}","note_how":"ចុច «សម្អាត» ដើម្បីចាប់ផ្ដើម → សម្អាត → ចុចលើបន្ទប់ រួចថតក្រោយសម្អាត (រូបមុន មិនថតក៏បាន)។ ឈ្មោះបន្ទប់ (ដូចជា 1-A) ជាឈ្មោះបណ្ដោះអាសន្ន។","week_title":"កំណត់ត្រា 7 ថ្ងៃ","week_from":"កំណត់ត្រាចាប់ផ្ដើមពីថ្ងៃនេះ","week_demo":"លេខនៃថ្ងៃមុនៗគឺជាលេខគំរូ","week_note":"របារ = ចំនួនកន្លែងដែលសម្អាតរួច។ លេខខាងក្រោម = ម៉ោងចាប់ផ្ដើម និងចំនួននាទីដែលចំណាយ។","today":"ថ្ងៃនេះ","demo_on":"មើលគំរូ","demo_off":"លុបគំរូ","reset":"ចាប់ផ្ដើមថ្ងៃនេះឡើងវិញ","confirm":"រូបថត និងសញ្ញាធីកនៃថ្ងៃនេះ នឹងត្រូវលុប។","yes":"លុប","no":"មិនលុប","about":"នេះជាកម្មវិធីសាកល្បង។ រូបថតនៅតែក្នុងទូរស័ព្ទនេះប៉ុណ្ណោះ ហើយមិនផ្ញើទៅណាទេ។ កម្មវិធីរក្សាទុកតែរូបថតថ្ងៃនេះ ហើយពេលដល់ថ្ងៃថ្មី រូបថតនឹងត្រូវលុប (នៅសល់តែកំណត់ត្រាជាលេខ)។","room_title":"បន្ទប់ជាន់ទី{f}","room_sub":"ឈ្មោះបណ្ដោះអាសន្ន","close":"បិទ","step1":"រូបមុន មិនថតក៏បាន","step2":"① សម្អាត","step3":"② ថតក្រោយសម្អាត","redo":"ថតម្ដងទៀត","fix_title":"មានកន្លែងមានបញ្ហា","fix_sub":"ខូច ឬប្រឡាក់ជូតមិនចេញ ជាដើម។ ជាសញ្ញាទុកបង្ហាញ បង Ron ពេលក្រោយ។","done10":"រួចរាល់! +10","shot_lock":"ថតមុនសម្អាតសិន","shot_b":"ថតរូបមុនពេលសម្អាត (មិនថតក៏បាន)","shot_a":"ថតរូបក្រោយពេលសម្អាត","toast_done":"{id} រួចរាល់!","toast_save":"រក្សាទុកក្នុងទូរស័ព្ទនេះមិនបានទេ។ បើបិទកម្មវិធីនេះ ទិន្នន័យនឹងបាត់។","toast_photo":"អានរូបថតមិនបានទេ។ សូមថតម្ដងទៀត។","toast_reset":"បានលុបទិន្នន័យថ្ងៃនេះហើយ","wd":"អាទិត្យ,ចន្ទ,អង្គារ,ពុធ,ព្រហស្បតិ៍,សុក្រ,សៅរ៍","aria_checks":"សញ្ញាធីកនៃថ្ងៃនេះ","msg_press":"ចុច «សម្អាត» ដើម្បីចាប់ផ្ដើម","clean_start":"ចុច ចាប់ផ្ដើម","toast_start":"ចាប់ផ្ដើមសម្អាតហើយ!","out":"ក្រៅ","veranda":"បាល់កុង","veranda_sub":"ការសម្អាតខាងក្រៅ","lap":" ({n} នាទី)"}}/*END*/;
+  var T=/*I18N*/{"ja":{"title":"朝のおそうじ","msg_all":"ぜんぶ できた！ +50","msg_start":"5階から はじめよう","msg_left":"あと {n} か所","demo_tag":"見本","lb_shutter":"シャッター","lb_clean":"そうじ","lb_meal":"朝ごはん","lb_open":"オープン","lb_close":"しめ","lb_wash":"せんたく","lb_dinner":"夜ごはん","lb_study":"べんきょう","lb_sleep":"ねる","until":"{t} まで","t_start":"はじめた","t_end":"おわった","t_dur":"かかった","min":"分","cleaning":"そうじ中","bld_title":"5階 → 1階 へ はく","s_todo":"まだ","s_half":"前だけ","s_done":"できた","floor":"{f}階","note_how":"「そうじ」を おして スタート → そうじ → 部屋を おして 後をとる（前の写真は なくてもOK）。部屋の名前（1-A など）は仮です。","week_title":"7日のきろく","week_from":"きろくは今日から","week_demo":"前の日は見本の数字","week_note":"棒＝できた所の数。下の数字＝はじめた時刻・かかった分。","today":"今日","demo_on":"見本を入れて見る","demo_off":"見本を消す","reset":"今日をやり直す","confirm":"今日の写真とチェックを消します。","yes":"消す","no":"やめる","about":"写真は、とったら会社の Telegram グループに届きます。このスマホには今日の分だけを残し、日がかわると写真は消えます（数のきろくだけ残ります）。","room_title":"{f}階の部屋","room_sub":"名前は仮","close":"とじる","step1":"前の写真は なくてもOK","step2":"① そうじ","step3":"② 後をとる","redo":"とり直す","fix_title":"気になる所がある","fix_sub":"こわれている・よごれが取れない など。あとでロンさんに見せる印","done10":"できた！ +10","shot_lock":"先に 前をとる","shot_b":"前をとる（なくてもOK）","shot_a":"そうじの 後をとる","toast_done":"{id} できた！","toast_save":"このスマホに保存できませんでした。画面をとじると消えます","toast_photo":"写真を読めませんでした。もう一度とってください","toast_reset":"今日の分を消しました","wd":"日,月,火,水,木,金,土","aria_checks":"今日のチェック","msg_press":"「そうじ」を おして スタート","clean_start":"おして スタート","toast_start":"そうじ スタート！","out":"外","veranda":"ベランダ","veranda_sub":"外のそうじ","lap":"（{n}分）"},"km":{"title":"ការសម្អាតពេលព្រឹក","msg_all":"រួចរាល់ទាំងអស់! +50","msg_start":"យើងចាប់ផ្ដើមពីជាន់ទី5!","msg_left":"នៅសល់ {n} កន្លែង","demo_tag":"គំរូ","lb_shutter":"បើកទ្វារដែក","lb_clean":"សម្អាត","lb_meal":"បាយព្រឹក","lb_open":"បើកហាង","lb_close":"បិទហាង","lb_wash":"បោកខោអាវ","lb_dinner":"បាយល្ងាច","lb_study":"រៀនជប៉ុន","lb_sleep":"ចូលគេង","until":"ត្រឹមម៉ោង {t}","t_start":"ចាប់ផ្ដើម","t_end":"បញ្ចប់","t_dur":"ចំណាយពេល","min":"នាទី","cleaning":"កំពុងសម្អាត","bld_title":"យើងបោសពីជាន់ទី5 ចុះដល់ជាន់ទី1","s_todo":"មិនទាន់ធ្វើ","s_half":"មានតែរូបមុន","s_done":"រួចរាល់","floor":"ជាន់ទី{f}","note_how":"ចុច «សម្អាត» ដើម្បីចាប់ផ្ដើម → សម្អាត → ចុចលើបន្ទប់ រួចថតក្រោយសម្អាត (រូបមុន មិនថតក៏បាន)។ ឈ្មោះបន្ទប់ (ដូចជា 1-A) ជាឈ្មោះបណ្ដោះអាសន្ន។","week_title":"កំណត់ត្រា 7 ថ្ងៃ","week_from":"កំណត់ត្រាចាប់ផ្ដើមពីថ្ងៃនេះ","week_demo":"លេខនៃថ្ងៃមុនៗគឺជាលេខគំរូ","week_note":"របារ = ចំនួនកន្លែងដែលសម្អាតរួច។ លេខខាងក្រោម = ម៉ោងចាប់ផ្ដើម និងចំនួននាទីដែលចំណាយ។","today":"ថ្ងៃនេះ","demo_on":"មើលគំរូ","demo_off":"លុបគំរូ","reset":"ចាប់ផ្ដើមថ្ងៃនេះឡើងវិញ","confirm":"រូបថត និងសញ្ញាធីកនៃថ្ងៃនេះ នឹងត្រូវលុប។","yes":"លុប","no":"មិនលុប","about":"ពេលថតរួច រូបថតនឹងទៅដល់ក្រុម Telegram របស់ក្រុមហ៊ុន។ ក្នុងទូរស័ព្ទនេះ កម្មវិធីរក្សាទុកតែរូបថតថ្ងៃនេះប៉ុណ្ណោះ ហើយពេលដល់ថ្ងៃថ្មី រូបថតនឹងត្រូវលុប (នៅសល់តែកំណត់ត្រាជាលេខ)។","room_title":"បន្ទប់ជាន់ទី{f}","room_sub":"ឈ្មោះបណ្ដោះអាសន្ន","close":"បិទ","step1":"រូបមុន មិនថតក៏បាន","step2":"① សម្អាត","step3":"② ថតក្រោយសម្អាត","redo":"ថតម្ដងទៀត","fix_title":"មានកន្លែងមានបញ្ហា","fix_sub":"ខូច ឬប្រឡាក់ជូតមិនចេញ ជាដើម។ ជាសញ្ញាទុកបង្ហាញ បង Ron ពេលក្រោយ។","done10":"រួចរាល់! +10","shot_lock":"ថតមុនសម្អាតសិន","shot_b":"ថតរូបមុនពេលសម្អាត (មិនថតក៏បាន)","shot_a":"ថតរូបក្រោយពេលសម្អាត","toast_done":"{id} រួចរាល់!","toast_save":"រក្សាទុកក្នុងទូរស័ព្ទនេះមិនបានទេ។ បើបិទកម្មវិធីនេះ ទិន្នន័យនឹងបាត់។","toast_photo":"អានរូបថតមិនបានទេ។ សូមថតម្ដងទៀត។","toast_reset":"បានលុបទិន្នន័យថ្ងៃនេះហើយ","wd":"អាទិត្យ,ចន្ទ,អង្គារ,ពុធ,ព្រហស្បតិ៍,សុក្រ,សៅរ៍","aria_checks":"សញ្ញាធីកនៃថ្ងៃនេះ","msg_press":"ចុច «សម្អាត» ដើម្បីចាប់ផ្ដើម","clean_start":"ចុច ចាប់ផ្ដើម","toast_start":"ចាប់ផ្ដើមសម្អាតហើយ!","out":"ក្រៅ","veranda":"បាល់កុង","veranda_sub":"ការសម្អាតខាងក្រៅ","lap":" ({n} នាទី)"}}/*END*/;
   var $=function(id){return document.getElementById(id)};
   // ことば：前に選んだもの → 無ければ端末が日本語なら日本語、ほかはクメール語
   var KL="sm-clean-lang",LANG="km";
@@ -297,7 +298,7 @@ html[lang="km"] .slot .cap small,html[lang="km"] .fixrow small{font-family:var(-
   function load(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return mem[k]||def}}
   function save(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
   // 日がかわったら、前の日の写真を消す
-  try{for(var i=localStorage.length-1;i>=0;i--){var kk=localStorage.key(i);if(kk&&kk.indexOf("sm-clean-2")===0&&kk!==K)localStorage.removeItem(kk)}}catch(e){}
+  var OLDK=[];try{for(var i=localStorage.length-1;i>=0;i--){var kk=localStorage.key(i);if(kk&&kk.indexOf("sm-clean-2")===0&&kk!==K)OLDK.push(kk)}}catch(e){}
   var S=load(K,{rooms:{},checks:{},demo:false});
   var H=load(KH,{});
   var cur=null,slot=null;
@@ -392,8 +393,62 @@ html[lang="km"] .slot .cap small,html[lang="km"] .fixrow small{font-family:var(-
     im.onerror=function(){URL.revokeObjectURL(u);toast(t("toast_photo"))};im.src=u};
   function put(w,data){
     if(S.demo){S={rooms:{},checks:{},demo:false}}
-    var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x[w]=data;x[w+"t"]=Date.now();if(!S.cs)S.cs=x[w+"t"];persist();sheet();
+    var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x[w]=data;x[w+"t"]=Date.now();x[w+"s"]=0;if(!S.cs)S.cs=x[w+"t"];persist();sheet();flush();
     if(w==="a"){var lp=laps()[cur.id];toast(t("toast_done",{id:nm(cur)})+(lp?t("lap",{n:lp}):""))}}
+  // ── 写真を管理グループへ送る（2026-11-21）。撮ったら送る・だめなら端末に残しておいて後で送り直す ──
+  // 受け取る側＝v7-operations の OsoujiRelay.gs。送った印は写真ごとに x.as / x.bs（1＝送った・2＝断られたので送らない）
+  // HOLD＝前の日の分や「やり直す」前の分で、まだ送れていない写真（送る形にして取っておく・多くても30枚）
+  var OPS_URL="https://script.google.com/macros/s/AKfycbxHLCD6vhnNZhSywyWmpaUuwt1goC4n9pwLNNlVzo-3gp9eSwAIMU_EXWPVdbt9Vw/exec";
+  var KD="sm-clean-dev",KQ="sm-clean-hold",DEV="";
+  try{DEV=localStorage.getItem(KD)||""}catch(e){}
+  if(!/^[A-Za-z0-9_-]{16,64}$/.test(DEV)){var ab=new Uint8Array(18);window.crypto.getRandomValues(ab);DEV="";for(var di=0;di<ab.length;di++)DEV+=("0"+ab[di].toString(16)).slice(-2);try{localStorage.setItem(KD,DEV)}catch(e){}}
+  var HOLD=load(KQ,[]);if(!HOLD||!HOLD.length)HOLD=[];
+  var sending=false,hold="",code="",fails={};
+  function withS(st,fn){var keep=S;S=st;try{return fn()}finally{S=keep}}
+  function payloadOf(st,date,r,w){return withS(st,function(){
+    var x=S.rooms[r.id],tt=x[w+"t"],sp=span(),isA=w==="a";
+    var done=isA?ROOMS.filter(function(q){var y=S.rooms[q.id];return y&&y.at&&y.at<=tt}).length:doneCount();
+    return {date:date,room:r.id,w:w,t:tt,total:TOTAL,done:done,lap:isA?(laps()[r.id]||0):0,span:isA&&sp.s&&tt>sp.s?Math.round((tt-sp.s)/6e4):0,img:x[w]}})}
+  function pending(st){var a=[];if(!st||st.demo||!st.rooms)return a;ROOMS.forEach(function(r){var x=st.rooms[r.id];if(!x)return;["b","a"].forEach(function(w){if(x[w]&&x[w+"t"]&&!x[w+"s"])a.push({r:r,w:w,t:x[w+"t"]})})});return a}
+  // st の中の、まだ送っていない写真を HOLD へ移す（日がかわった時・やり直す時に、消える前に呼ぶ）
+  function stash(st,date){
+    var a=pending(st);if(!a.length)return;
+    a.forEach(function(o){HOLD.push(payloadOf(st,date,o.r,o.w))});
+    HOLD.sort(function(p,q){return p.t-q.t});if(HOLD.length>30)HOLD=HOLD.slice(-30);
+    if(!save(KQ,HOLD)){HOLD=HOLD.slice(-8);save(KQ,HOLD)}}
+  // 前の日の分：2日前までの未送信は HOLD へ移してから消す
+  OLDK.forEach(function(k){
+    try{var d=k.replace("sm-clean-",""),age=(new Date(TODAY+"T12:00:00").getTime()-new Date(d+"T12:00:00").getTime())/864e5;
+      if(age>0&&age<=2.5)stash(load(k,null),d)}catch(e){}
+    try{localStorage.removeItem(k)}catch(e){}});
+  function queue(){
+    var a=HOLD.map(function(h){return {h:h,t:h.t,id:"h"+h.date+h.room+h.w+h.t}});
+    pending(S).forEach(function(o){o.id="t"+o.r.id+o.w+o.t;a.push(o)});
+    // 古い順。何度もだめな1枚で後ろを止めないよう、失敗の少ないものを先に
+    return a.sort(function(p,q){return ((fails[p.id]||0)-(fails[q.id]||0))||(p.t-q.t)})}
+  function syncBadge(){var n=queue().length,el=$("sync");el.hidden=!n;el.textContent=(hold==="DEVICE_PENDING"?"⏳ "+code+" · ":"📤 ")+n}
+  function mark(it,v){
+    if(it.h){var i=HOLD.indexOf(it.h);if(i>=0)HOLD.splice(i,1);save(KQ,HOLD)}
+    else{var y=S.rooms[it.r.id];if(y&&y[it.w+"t"]===it.t){y[it.w+"s"]=v;save(K,S)}}}
+  function flush(){
+    if(sending)return;var q=queue();syncBadge();if(!q.length)return;
+    var it=q[0],p=it.h||payloadOf(S,TODAY,it.r,it.w),body={action:"osouji_photo",device:DEV};
+    for(var k in p)body[k]=p[k];
+    sending=true;
+    fetch(OPS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)})
+      .then(function(r){return r.json()})
+      .then(function(j){sending=false;
+        var err=(j&&j.error)||"ERR";
+        if(j&&j.ok){hold="";mark(it,1);syncBadge();flush();return}
+        // 形がおかしい・1日の上限、と断られた写真は送り直しても通らない → 送らない印を付けて次へ
+        if(/^INVALID_|^RATE_LIMIT$/.test(err)){mark(it,2);syncBadge();flush();return}
+        hold=err;if(j&&j.code)code=String(j.code).slice(0,6);
+        if(err!=="DEVICE_PENDING")fails[it.id]=(fails[it.id]||0)+1;
+        syncBadge()})
+      .catch(function(){sending=false;hold="NET";syncBadge()});
+  }
+  window.addEventListener("online",flush);
+  setInterval(function(){if(!document.hidden)flush()},60000);
   $("fix").onclick=function(){var x=S.rooms[cur.id]||(S.rooms[cur.id]={});x.fix=!x.fix;persist();sheet()};
   $("sh-x").onclick=closeRoom;$("sh-ok").onclick=closeRoom;
   $("scrim").onclick=function(e){if(e.target===this)closeRoom()};
@@ -409,18 +464,18 @@ html[lang="km"] .slot .cap small,html[lang="km"] .fixrow small{font-family:var(-
     return c.toDataURL("image/jpeg",.6)}
   $("demo").onclick=function(){
     if(S.demo){S={rooms:{},checks:{},demo:false}}
-    else{var base=new Date(now.getFullYear(),now.getMonth(),now.getDate(),6,40).getTime(),B=fake("BEFORE",false),A=fake("AFTER",true);
+    else{stash(S,TODAY);var base=new Date(now.getFullYear(),now.getMonth(),now.getDate(),6,40).getTime(),B=fake("BEFORE",false),A=fake("AFTER",true);
       S={rooms:{},checks:{meal:0,open:0},demo:true};
       ROOMS.slice(0,7).forEach(function(r,i){S.rooms[r.id]={b:B,bt:base+i*7*6e4,a:A,at:base+(i*7+5)*6e4}});
       S.rooms["2-B"]={b:B,bt:base+50*6e4};S.rooms["4-A"].fix=true}
     save(K,S);render()};
   $("reset").onclick=function(){$("confirm").hidden=false};
   $("no").onclick=function(){$("confirm").hidden=true};
-  $("yes").onclick=function(){S={rooms:{},checks:{},demo:false};persist();$("confirm").hidden=true;render();toast(t("toast_reset"))};
+  $("yes").onclick=function(){stash(S,TODAY);S={rooms:{},checks:{},demo:false};persist();$("confirm").hidden=true;render();toast(t("toast_reset"))};
   $("lg-km").onclick=function(){setLang("km")};$("lg-ja").onclick=function(){setLang("ja")};
   // 夜をまたいで開きっぱなしのとき、もどってきたら今日の画面に直す
-  document.addEventListener("visibilitychange",function(){if(!document.hidden&&dkey(new Date())!==TODAY&&!cur)location.reload()});
-  applyLang();render();
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&dkey(new Date())!==TODAY&&!cur)location.reload();else if(!document.hidden)flush()});
+  applyLang();render();flush();
 })();
 </script>
 
